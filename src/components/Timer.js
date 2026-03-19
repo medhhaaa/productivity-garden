@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react"; // importing React hooks
 
 function Timer() {
-
+const [sessions, setSessions] = useState(() => {
+  const saved = localStorage.getItem("sessions");
+  return saved ? Number(saved) : 0;
+});
   // time → stores remaining seconds (1500 = 25 mins)
   // setTime → function to update time
   const [time, setTime] = useState(1500);
 
   // isRunning → whether timer is ON or OFF
   const [isRunning, setIsRunning] = useState(false);
-
+  useEffect(() => {
+  localStorage.setItem("sessions", sessions);
+}, [sessions]);
   // useEffect runs whenever isRunning or time changes
   useEffect(() => {
     let timer; // will store interval ID
@@ -17,7 +22,13 @@ function Timer() {
     if (isRunning && time > 0) {
       timer = setInterval(() => {
         // decrease time by 1 every second
-        setTime((prev) => prev - 1);
+        setTime((prev) => {
+  if (prev === 1) {
+    setSessions((s) => s + 1); // ✅ increase session
+    return 0;
+  }
+  return prev - 1;
+});
       }, 1000);
     }
 
@@ -45,7 +56,7 @@ function Timer() {
       <p className="text-3xl mt-2">{formatTime()}</p>
 
       <div className="mt-3 flex gap-2 justify-center">
-
+      <p>Sessions: {sessions}</p>
         {/* Start / Pause button */}
         <button
           onClick={() => setIsRunning(!isRunning)} // toggle state
