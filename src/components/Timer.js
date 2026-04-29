@@ -1,85 +1,123 @@
-import { useState, useEffect } from "react"; // importing React hooks
+import { useState, useEffect } from "react";
 
 function Timer() {
-const [sessions, setSessions] = useState(() => {
-  const saved = localStorage.getItem("sessions");
-  return saved ? Number(saved) : 0;
-});
-  // time → stores remaining seconds (1500 = 25 mins)
-  // setTime → function to update time
-  const [time, setTime] = useState(1500);
 
-  // isRunning → whether timer is ON or OFF
-  const [isRunning, setIsRunning] = useState(false);
-  useEffect(() => {
-  localStorage.setItem("sessions", sessions);
-}, [sessions]);
-  // useEffect runs whenever isRunning or time changes
-  useEffect(() => {
-    let timer; // will store interval ID
+  // ✅ SINGLE SOURCE OF TRUTH
+  const pet = sessionStorage.getItem("pet") || "dog";
 
-    // only run if timer is ON and time is not finished
+  const [sessions, setSessions] = useState(() => {
+    const saved = sessionStorage.getItem("sessions");
+    return saved ? Number(saved) : 0;
+  });
+
+  // ✅ READ ONLY (NOT CONTROL)
+  const [petStage, setPetStage] = useState(0);
+
+  const [time, setTime] = useState(() => {
+    const saved = sessionStorage.getItem("time");
+    return saved ? Number(saved) : 1500;
+  });
+
+  const [isRunning, setIsRunning] = useState(() => {
+    const saved = sessionStorage.getItem("isRunning");
+    return saved === "true";
+  });
+
+  // ✅ SYNC petStage from sessionStorage (DO NOT MODIFY IT HERE)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const stage = Number(sessionStorage.getItem("petStage")) || 0;
+      setPetStage(stage);
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ✅ SAVE TIMER STATE ONLY
+  useEffect(() => {
+    sessionStorage.setItem("sessions", sessions);
+  }, [sessions]);
+
+  useEffect(() => {
+    sessionStorage.setItem("time", time);
+    sessionStorage.setItem("isRunning", isRunning);
+
+    let timer;
+
+    // ❌ REMOVED petStage update here (IMPORTANT)
+
     if (isRunning && time > 0) {
       timer = setInterval(() => {
-        // decrease time by 1 every second
         setTime((prev) => {
-  if (prev === 1) {
-    setSessions((s) => s + 1); // ✅ increase session
-    return 0;
-  }
-  return prev - 1;
-});
+          if (prev === 1) {
+            setSessions((s) => s + 1);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
     }
 
-    // cleanup function → stops previous interval
-    // VERY important to avoid multiple timers running
     return () => clearInterval(timer);
+  }, [isRunning, time]);
 
-  }, [isRunning, time]); // dependency array
-
-  // function to convert seconds → mm:ss format
+  // ✅ FORMAT TIME
   const formatTime = () => {
-    const minutes = Math.floor(time / 60); // get minutes
-    const seconds = time % 60; // get remaining seconds
-
-    // add 0 if seconds < 10 (e.g., 2:05 instead of 2:5)
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
+  // ✅ SAME LOGIC AS PETCARD
+  const getPetDisplay = () => {
+    if (pet === "dog") {
+      if (petStage === 0) return "🐶";
+      if (petStage === 1) return "🐕";
+      if (petStage === 2) return "🐕‍🦺";
+      if (petStage >= 3) return "🦮";
+    }
+
+    if (pet === "cat") {
+      if (petStage === 0) return "🐱";
+      if (petStage === 1) return "🐈";
+      if (petStage === 2) return "🐈‍⬛";
+      if (petStage >= 3) return "😼";
+    }
+
+    return "🐾";
   };
 
   return (
     <div className="bg-white p-4 rounded-xl shadow text-center">
 
+      <p className="text-4xl mt-4">{getPetDisplay()}</p>
+
       <h2 className="text-xl font-semibold">⏱️ Timer</h2>
 
-      {/* display formatted time */}
       <p className="text-3xl mt-2">{formatTime()}</p>
 
-      <div className="mt-3 flex gap-2 justify-center">
-      <p>Sessions: {sessions}</p>
-        {/* Start / Pause button */}
+      <div className="mt-3 flex gap-2 justify-center flex-wrap">
+        <p>Sessions: {sessions}</p>
+
         <button
-          onClick={() => setIsRunning(!isRunning)} // toggle state
-          className="bg-green-400 text-white px-4 py-2 rounded"
+          onClick={() => setIsRunning(!isRunning)}
+          className="bg-green-400 text-white px-3 py-1 rounded text-sm"
         >
-          {/* change text based on state */}
           {isRunning ? "Pause" : "Start"}
         </button>
 
-        {/* Reset button */}
         <button
           onClick={() => {
-            setTime(1500); // reset time
-            setIsRunning(false); // stop timer
+            setTime(1500);
+            setIsRunning(false);
           }}
-          className="bg-red-400 text-white px-4 py-2 rounded"
+          className="bg-red-400 text-white px-3 py-1 rounded text-sm"
         >
           Reset
         </button>
-
       </div>
     </div>
   );
 }
 
-export default Timer; // makes this component usable in other files
+export default Timer;
