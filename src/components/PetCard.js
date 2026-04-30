@@ -63,26 +63,26 @@ function PetCard() {
     return "🐾";
   };
   return (
-    <div className="text-center">
-      <h2 className="text-lg font-semibold mb-4">Your Pet</h2>
+    <div className="text-center w-full bg-[#fbfaf7] rounded-2xl border border-white/60 shadow-md p-6">
+      <h2 className="text-lg font-semibold mb-5 text-[#5f7245]">Your Pet</h2>
 
       <div className="relative flex justify-center items-center">
 
         {/* FLASH */}
         {animate && (
-          <div className="absolute w-24 h-24 bg-yellow-300 opacity-40 rounded-full animate-ping"></div>
+          <div className="absolute w-24 h-24 bg-yellow-200 opacity-30 blur-xl rounded-full transition-all duration-500 ease-out animate-pulse"></div>
         )}
 
         {/* PET */}
         <p
-          className={`transition-all duration-300 ${petStage === 0
+          className={`transform transition-all duration-500 ease-in-out opacity-100 translate-y-0 hover:scale-105 ${petStage === 0
               ? "text-5xl"
               : petStage === 1
                 ? "text-6xl"
                 : petStage === 2
                   ? "text-7xl"
                   : "text-8xl"
-            } ${animate ? "scale-150" : "scale-100"}`}
+            } ${animate ? "scale-110 animate-[bounce_0.8s_ease-in-out_1] opacity-100 translate-y-0" : "scale-100 opacity-100 translate-y-0"}`}
         >
           {getPetDisplay()}
         </p>
