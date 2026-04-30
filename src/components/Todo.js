@@ -13,7 +13,7 @@ function Todo() {
 
   const [task, setTask] = useState("");
 
-  // ✅ LIVE TIMER + SESSIONS
+  // ✅ LIVE TIMER + SESSIONS (FIXED)
   const [liveTime, setLiveTime] = useState(
     Number(sessionStorage.getItem("time")) || 1500
   );
@@ -22,14 +22,24 @@ function Todo() {
     Number(sessionStorage.getItem("sessions")) || 0
   );
 
+  // 🔥 IMPROVED SYNC (faster + smoother)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveTime(Number(sessionStorage.getItem("time")) || 1500);
-      setSessions(Number(sessionStorage.getItem("sessions")) || 0);
-    }, 1000);
+  const update = () => {
+    const t = Number(sessionStorage.getItem("time")) || 1500;
+    const s = Number(sessionStorage.getItem("sessions")) || 0;
 
-    return () => clearInterval(interval);
-  }, []);
+    setLiveTime(t);
+    setSessions(s);
+  };
+
+  // run once immediately
+  update();
+
+  // listen for updates from Timer
+  window.addEventListener("timerUpdate", update);
+
+  return () => window.removeEventListener("timerUpdate", update);
+}, []);
 
   const formatTime = (t) => {
     const m = Math.floor(t / 60);
@@ -46,18 +56,20 @@ function Todo() {
   useEffect(() => {
     sessionStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
-  
-useEffect(() => {
-  if (progress >= 50 && !sessionStorage.getItem("shown50")) {
-    window.dispatchEvent(new Event("openFeeling"));
-    sessionStorage.setItem("shown50", "true");
-  }
 
-  if (progress >= 90 && !sessionStorage.getItem("shown90")) {
-    window.dispatchEvent(new Event("openFeeling"));
-    sessionStorage.setItem("shown90", "true");
-  }
-}, [progress]);
+  // ✅ FEELING POPUP TRIGGERS
+  useEffect(() => {
+    if (progress >= 50 && !sessionStorage.getItem("shown50")) {
+      window.dispatchEvent(new Event("openFeeling"));
+      sessionStorage.setItem("shown50", "true");
+    }
+
+    if (progress >= 90 && !sessionStorage.getItem("shown90")) {
+      window.dispatchEvent(new Event("openFeeling"));
+      sessionStorage.setItem("shown90", "true");
+    }
+  }, [progress]);
+
   const addTask = () => {
     if (task.trim() === "") return;
     setTasks([...tasks, { text: task, done: false }]);
@@ -89,9 +101,11 @@ useEffect(() => {
   return (
     <div className="bg-[#6b7f4e] p-6 rounded-3xl shadow-md border border-[#d8dfcb]">
       <div className="bg-[#f5f3ef] p-6 rounded-3xl w-full max-w-[800px] border border-white/50 shadow-inner">
-        <h2 className="text-xl font-semibold mb-5 text-[#5f7245] tracking-wide">YOUR TODO LIST </h2>
+        <h2 className="text-xl font-semibold mb-5 text-[#5f7245] tracking-wide">
+          YOUR TODO LIST
+        </h2>
 
-        {/* ✅ TOP 3 BOXES */}
+        {/* TOP SECTION */}
         <div className="flex items-center gap-4 mb-6">
 
           {/* DATE */}
@@ -103,7 +117,7 @@ useEffect(() => {
             <p className="text-sm mt-1 text-gray-500">{month}</p>
           </div>
 
-          {/* TIMER + SESSIONS */}
+          {/* TIMER */}
           <div className="flex-1 bg-[#fbfaf7] p-4 rounded-2xl shadow-md border border-white/60 flex items-center justify-between">
 
             <div className="flex items-center gap-3">
