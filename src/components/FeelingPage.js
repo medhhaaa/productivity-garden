@@ -8,7 +8,7 @@ import anger from "../assets/anger.png";
 import numbness from "../assets/numbness.png";
 import sad from "../assets/sad.png";
 import tired from "../assets/tired.png";
-
+import "../App.css";
 const feelings = [
   { label: "Happy", img: happy },
   { label: "Loved", img: loved },
